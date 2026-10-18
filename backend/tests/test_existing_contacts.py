@@ -36,7 +36,7 @@ def test_clear_all_contacts_requires_confirmation(client):
     assert client.get("/api/contacts").json() == []
 
 
-def test_yealink_remote_phonebook_is_valid_xml_and_escapes_values(client):
+def test_t33_remote_phonebook_matches_yealink_directory_structure(client):
     client.post(
         "/api/contacts",
         json={
@@ -52,7 +52,16 @@ def test_yealink_remote_phonebook_is_valid_xml_and_escapes_values(client):
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("application/xml")
     assert "content-disposition" not in response.headers
-    assert ElementTree.fromstring(response.content).tag == "YealinkIPPhoneDirectory"
+    root = ElementTree.fromstring(response.content)
+    assert root.tag == "YealinkIPPhoneDirectory"
+    entries = root.findall("DirectoryEntry")
+    assert len(entries) == 1
+    assert entries[0].findtext("Name") == "R&D <Desk>"
+    assert [node.text for node in entries[0].findall("Telephone")] == [
+        '100&1"',
+        "1002",
+        "1003",
+    ]
     assert "<YealinkIPPhoneDirectory>" in response.text
     assert response.text.count("<DirectoryEntry>") == 1
     assert "<Name>R&amp;D &lt;Desk&gt;</Name>" in response.text

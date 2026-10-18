@@ -189,6 +189,43 @@ migration is required.
 3. For Docker, set the Remote URL to: `http://your-server:8681/yealink/phonebook.xml`
 4. Save and the phonebook will sync automatically
 
+### SIP-T33P/T33G Settings
+
+For a SIP-T33P or SIP-T33G, configure one remote phone book as follows:
+
+| Setting | Value |
+|---|---|
+| Remote URL | `http://your-server:8681/yealink/phonebook.xml` |
+| Display Name | `Company Phonebook` |
+| Username | Leave blank |
+| Password | Leave blank |
+
+The application endpoint is intentionally public for phone synchronization and
+returns the exact `YealinkIPPhoneDirectory` → `DirectoryEntry` → `Name` /
+`Telephone` structure required by the T33P/T33G. The model supports up to five
+remote phone books. Yealink recommends fewer than 5,000 remote contacts, and
+the downloaded file must remain below 1.5 MB.
+
+The phone's default remote-phonebook cache refresh is 21,600 seconds (6 hours).
+After changing contacts, manually refresh the directory or reboot the phone if
+you need the update immediately. For auto-provisioning, the relevant settings
+are:
+
+```text
+remote_phonebook.data.1.url = http://your-server:8681/yealink/phonebook.xml
+remote_phonebook.data.1.name = Company Phonebook
+features.remote_phonebook.flash_time = 3600
+```
+
+Common T33P/T33G diagnostic errors:
+
+| Error | Meaning | Check |
+|---|---|---|
+| `0x0009000001060000` | Download failed | Confirm the phone can reach the server and port 8681 |
+| `0x0009000001060001` | XML format error | Confirm the URL opens with `YealinkIPPhoneDirectory` as its root |
+| `0x0009000001060002` | Download limit exceeded | Keep the response below 1.5 MB |
+| `0x0009000001060003` | Authentication error | Leave username and password blank for this public endpoint |
+
 ## Development
 
 ### Project Structure
