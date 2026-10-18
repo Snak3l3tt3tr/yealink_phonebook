@@ -18,6 +18,22 @@ const contactIdInput = document.getElementById('contactId');
 const searchBox = document.getElementById('searchBox');
 const searchInput = document.getElementById('searchInput');
 const searchCount = document.getElementById('searchCount');
+const importForm = document.getElementById('importForm');
+const csvFile = document.getElementById('csvFile');
+const duplicateStrategy = document.getElementById('duplicateStrategy');
+const importBtn = document.getElementById('importBtn');
+const importResult = document.getElementById('importResult');
+const importSummary = document.getElementById('importSummary');
+const importErrorsContainer = document.getElementById('importErrorsContainer');
+const importErrorsBody = document.getElementById('importErrorsBody');
+const maintenanceContactCount = document.getElementById('maintenanceContactCount');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const maintenanceStatus = document.getElementById('maintenanceStatus');
+const logoutBtn = document.getElementById('logoutBtn');
+const changePasswordForm = document.getElementById('changePasswordForm');
+const changePasswordBtn = document.getElementById('changePasswordBtn');
+const passwordStatus = document.getElementById('passwordStatus');
+const remotePhonebookUrl = document.getElementById('remotePhonebookUrl');
 
 // State
 let editingContactId = null;
@@ -25,10 +41,15 @@ let allContacts = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    remotePhonebookUrl.value = `${window.location.origin}/yealink/phonebook.xml`;
     loadContacts();
     contactForm.addEventListener('submit', handleSubmit);
     cancelBtn.addEventListener('click', resetForm);
     searchInput.addEventListener('input', handleSearch);
+    importForm.addEventListener('submit', handleImport);
+    clearAllBtn.addEventListener('click', handleClearAll);
+    logoutBtn.addEventListener('click', handleLogout);
+    changePasswordForm.addEventListener('submit', handlePasswordChange);
 });
 
 // Load all contacts
@@ -38,11 +59,13 @@ async function loadContacts() {
         const response = await fetch(`${API_BASE_URL}/contacts`);
 
         if (!response.ok) {
-            throw new Error('Kontakte konnten nicht geladen werden');
+            throw new Error('Contacts could not be loaded');
         }
 
         const contacts = await response.json();
         allContacts = contacts;
+        maintenanceContactCount.textContent = `${contacts.length} ${contacts.length === 1 ? 'contact' : 'contacts'}`;
+        clearAllBtn.disabled = contacts.length === 0;
         displayContacts(contacts);
         hideLoading();
 
@@ -53,9 +76,153 @@ async function loadContacts() {
             searchBox.style.display = 'none';
         }
     } catch (err) {
-        showError('Fehler beim Laden der Kontakte: ' + err.message);
+        showError('Error loading contacts: ' + err.message);
         hideLoading();
     }
+}
+
+async function handleLogout() {
+    logoutBtn.disabled = true;
+    await fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST' });
+    window.location.replace('/login.html');
+}
+
+async function handlePasswordChange(e) {
+    e.preventDefault();
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (newPassword !== confirmPassword) {
+        passwordStatus.textContent = 'New passwords do not match.';
+        return;
+    }
+
+    changePasswordBtn.disabled = true;
+    changePasswordBtn.textContent = 'Changing...';
+    passwordStatus.textContent = '';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.detail || 'Password could not be changed');
+        }
+        window.location.replace('/login.html?changed=1');
+    } catch (err) {
+        passwordStatus.textContent = err.message;
+        changePasswordBtn.disabled = false;
+        changePasswordBtn.textContent = 'Change Password';
+    }
+}
+
+// Delete every contact after an explicit typed confirmation
+async function handleClearAll() {
+    const confirmation = prompt('This permanently deletes every contact. Type DELETE ALL to continue:');
+    if (confirmation !== 'DELETE ALL') {
+        maintenanceStatus.textContent = confirmation === null ? 'Clear all cancelled.' : 'Contacts were not deleted. Confirmation did not match.';
+        return;
+    }
+
+    clearAllBtn.disabled = true;
+    clearAllBtn.textContent = 'Deleting...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/contacts?confirm=${encodeURIComponent(confirmation)}`, {
+            method: 'DELETE'
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || 'Contacts could not be deleted');
+        }
+
+        maintenanceStatus.textContent = `${result.deleted} ${result.deleted === 1 ? 'contact was' : 'contacts were'} deleted.`;
+        searchInput.value = '';
+        resetForm();
+        await loadContacts();
+    } catch (err) {
+        showError('Error clearing contacts: ' + err.message);
+    } finally {
+        clearAllBtn.textContent = 'Delete All Contacts';
+        clearAllBtn.disabled = allContacts.length === 0;
+    }
+}
+
+// Import contacts from a CSV file
+async function handleImport(e) {
+    e.preventDefault();
+
+    if (!csvFile.files.length) {
+        showError('Please choose a CSV file.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', csvFile.files[0]);
+    importBtn.disabled = true;
+    importBtn.textContent = 'Importing...';
+    importResult.hidden = true;
+
+    try {
+        const strategy = encodeURIComponent(duplicateStrategy.value);
+        const response = await fetch(`${API_BASE_URL}/contacts/import?duplicate_strategy=${strategy}`, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || 'CSV file could not be imported');
+        }
+
+        displayImportResult(result);
+        importForm.reset();
+        await loadContacts();
+    } catch (err) {
+        showError('CSV import error: ' + err.message);
+    } finally {
+        importBtn.disabled = false;
+        importBtn.textContent = 'Import Contacts';
+    }
+}
+
+function displayImportResult(result) {
+    importResult.hidden = false;
+    importSummary.textContent = [
+        `${result.total_rows} ${result.total_rows === 1 ? 'row' : 'rows'} processed`,
+        `${result.created} created`,
+        `${result.updated} updated`,
+        `${result.skipped} skipped`,
+        `${result.error_count} ${result.error_count === 1 ? 'error' : 'errors'}`
+    ].join(' · ');
+
+    importErrorsBody.innerHTML = '';
+    if (!result.errors.length) {
+        importErrorsContainer.hidden = true;
+        importResult.classList.remove('has-errors');
+        return;
+    }
+
+    result.errors.forEach(rowError => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(String(rowError.row))}</td>
+            <td>${escapeHtml(rowError.name || '–')}</td>
+            <td>${escapeHtml(rowError.message)}</td>
+        `;
+        importErrorsBody.appendChild(row);
+    });
+    importErrorsContainer.hidden = false;
+    importResult.classList.add('has-errors');
 }
 
 // Display contacts in table and cards
@@ -95,8 +262,8 @@ function displayContacts(contacts) {
             <td>${escapeHtml(contact.phone2 || '-')}</td>
             <td>${escapeHtml(contact.phone3 || '-')}</td>
             <td>
-                <button class="btn btn-edit" onclick="editContact(${contact.id})">Bearbeiten</button>
-                <button class="btn btn-delete" onclick="deleteContact(${contact.id})">Löschen</button>
+                <button class="btn btn-edit" onclick="editContact(${contact.id})">Edit</button>
+                <button class="btn btn-delete" onclick="deleteContact(${contact.id})">Delete</button>
             </td>
         `;
         contactsBody.appendChild(row);
@@ -109,9 +276,9 @@ function displayContacts(contacts) {
         card.dataset.contactId = contact.id;
 
         const phones = [];
-        if (contact.phone1) phones.push({ label: 'Telefon 1', number: contact.phone1 });
-        if (contact.phone2) phones.push({ label: 'Telefon 2', number: contact.phone2 });
-        if (contact.phone3) phones.push({ label: 'Telefon 3', number: contact.phone3 });
+        if (contact.phone1) phones.push({ label: 'Office', number: contact.phone1 });
+        if (contact.phone2) phones.push({ label: 'Mobile', number: contact.phone2 });
+        if (contact.phone3) phones.push({ label: 'Other', number: contact.phone3 });
 
         const phonesHtml = phones.length > 0
             ? phones.map(p => `
@@ -120,7 +287,7 @@ function displayContacts(contacts) {
                     <span class="contact-card-phone-number">${escapeHtml(p.number)}</span>
                 </div>
             `).join('')
-            : '<div class="contact-card-phone"><span style="color: #95a5a6;">Keine Telefonnummern</span></div>';
+            : '<div class="contact-card-phone"><span style="color: #95a5a6;">No phone numbers</span></div>';
 
         card.innerHTML = `
             <div class="contact-card-header">
@@ -130,8 +297,8 @@ function displayContacts(contacts) {
                 ${phonesHtml}
             </div>
             <div class="contact-card-actions">
-                <button class="btn btn-edit" onclick="editContact(${contact.id})">Bearbeiten</button>
-                <button class="btn btn-delete" onclick="deleteContact(${contact.id})">Löschen</button>
+                <button class="btn btn-edit" onclick="editContact(${contact.id})">Edit</button>
+                <button class="btn btn-delete" onclick="deleteContact(${contact.id})">Delete</button>
             </div>
         `;
         contactsCards.appendChild(card);
@@ -174,13 +341,13 @@ async function handleSubmit(e) {
         }
 
         if (!response.ok) {
-            throw new Error('Kontakt konnte nicht gespeichert werden');
+            throw new Error('Contact could not be saved');
         }
 
         resetForm();
         loadContacts();
     } catch (err) {
-        showError('Fehler beim Speichern des Kontakts: ' + err.message);
+        showError('Error saving contact: ' + err.message);
     }
 }
 
@@ -190,7 +357,7 @@ async function editContact(id) {
         const response = await fetch(`${API_BASE_URL}/contacts/${id}`);
 
         if (!response.ok) {
-            throw new Error('Kontakt konnte nicht geladen werden');
+            throw new Error('Contact could not be loaded');
         }
 
         const contact = await response.json();
@@ -203,20 +370,20 @@ async function editContact(id) {
 
         // Update UI state
         editingContactId = id;
-        formTitle.textContent = 'Kontakt bearbeiten';
-        submitBtn.textContent = 'Kontakt aktualisieren';
+        formTitle.textContent = 'Edit Contact';
+        submitBtn.textContent = 'Update Contact';
         cancelBtn.style.display = 'inline-block';
 
         // Scroll to form
         contactForm.scrollIntoView({ behavior: 'smooth' });
     } catch (err) {
-        showError('Fehler beim Laden des Kontakts zum Bearbeiten: ' + err.message);
+        showError('Error loading contact for editing: ' + err.message);
     }
 }
 
 // Delete contact
 async function deleteContact(id) {
-    if (!confirm('Möchten Sie diesen Kontakt wirklich löschen?')) {
+    if (!confirm('Are you sure you want to delete this contact?')) {
         return;
     }
 
@@ -226,12 +393,12 @@ async function deleteContact(id) {
         });
 
         if (!response.ok) {
-            throw new Error('Kontakt konnte nicht gelöscht werden');
+            throw new Error('Contact could not be deleted');
         }
 
         loadContacts();
     } catch (err) {
-        showError('Fehler beim Löschen des Kontakts: ' + err.message);
+        showError('Error deleting contact: ' + err.message);
     }
 }
 
@@ -239,8 +406,8 @@ async function deleteContact(id) {
 function resetForm() {
     contactForm.reset();
     editingContactId = null;
-    formTitle.textContent = 'Neuen Kontakt hinzufügen';
-    submitBtn.textContent = 'Kontakt hinzufügen';
+    formTitle.textContent = 'Add New Contact';
+    submitBtn.textContent = 'Add Contact';
     cancelBtn.style.display = 'none';
 }
 
@@ -302,6 +469,6 @@ function updateSearchCount(count) {
     if (count === total) {
         searchCount.textContent = '';
     } else {
-        searchCount.textContent = `${count} von ${total}`;
+        searchCount.textContent = `${count} of ${total}`;
     }
 }

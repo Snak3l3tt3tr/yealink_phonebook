@@ -31,6 +31,17 @@ header h1 {
     font-size: 2em;
 }
 
+.app-header {
+    position: relative;
+}
+
+.app-header #logoutBtn {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+}
+
 main {
     display: grid;
     gap: 30px;
@@ -96,7 +107,8 @@ h2 {
     font-weight: 500;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
@@ -105,9 +117,16 @@ h2 {
     transition: border-color 0.3s;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
     outline: none;
     border-color: #3498db;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 6px;
+    color: #7f8c8d;
 }
 
 .form-actions {
@@ -142,6 +161,89 @@ h2 {
     background: #7f8c8d;
 }
 
+.btn:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+/* CSV import and export */
+.bulk-tools-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.bulk-tools-header h2 {
+    margin-bottom: 6px;
+}
+
+.bulk-tools-header p {
+    color: #5f6b76;
+}
+
+.bulk-tools-header .btn {
+    flex: 0 0 auto;
+    text-decoration: none;
+}
+
+.import-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 16px;
+}
+
+.import-form .form-group {
+    margin-bottom: 0;
+}
+
+.import-result {
+    margin-top: 22px;
+    padding: 16px;
+    border: 1px solid #b9e2c5;
+    border-left: 4px solid #27ae60;
+    border-radius: 4px;
+    background: #f1fbf4;
+}
+
+.import-result.has-errors {
+    border-color: #f1d08a;
+    border-left-color: #f39c12;
+    background: #fffaf0;
+}
+
+.import-result h3 {
+    margin-bottom: 4px;
+    color: #2c3e50;
+}
+
+.table-scroll {
+    max-width: 100%;
+    margin-top: 14px;
+    overflow-x: auto;
+}
+
+.import-errors {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.import-errors th,
+.import-errors td {
+    padding: 9px 10px;
+    border: 1px solid #e0e0e0;
+    text-align: left;
+    vertical-align: top;
+}
+
+.import-errors th:first-child,
+.import-errors td:first-child {
+    width: 70px;
+}
+
 .btn-edit {
     background: #f39c12;
     color: white;
@@ -162,6 +264,105 @@ h2 {
 
 .btn-delete:hover {
     background: #c0392b;
+}
+
+/* Maintenance */
+.maintenance-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    color: #5f6b76;
+}
+
+.maintenance-summary strong {
+    color: #2c3e50;
+}
+
+.maintenance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.maintenance-card {
+    padding: 18px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #f8f9fa;
+}
+
+.maintenance-card h3,
+.danger-zone h3 {
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+.maintenance-card ul {
+    padding-left: 20px;
+}
+
+.password-card {
+    grid-column: 1 / -1;
+}
+
+.password-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.password-form .form-group {
+    margin-bottom: 0;
+}
+
+.maintenance-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.maintenance-actions .btn {
+    padding: 9px 14px;
+    text-decoration: none;
+}
+
+.security-notice {
+    margin-top: 16px;
+    padding: 14px;
+    border-left: 4px solid #f39c12;
+    background: #fff8e8;
+}
+
+.danger-zone {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+    padding: 18px;
+    border: 1px solid #e8a2a2;
+    border-radius: 6px;
+    background: #fff5f5;
+}
+
+.btn-danger {
+    flex: 0 0 auto;
+    background: #c0392b;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #962d22;
+}
+
+.maintenance-status {
+    min-height: 1.6em;
+    margin-top: 10px;
+    color: #2c3e50;
 }
 
 /* Table Styles */
@@ -329,6 +530,26 @@ h2 {
 
     .form-actions {
         flex-direction: column;
+    }
+
+    .bulk-tools-header,
+    .import-form,
+    .password-form,
+    .danger-zone {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .maintenance-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .app-header #logoutBtn {
+        position: static;
+        width: auto;
+        margin-top: 12px;
+        transform: none;
     }
 
     .btn {

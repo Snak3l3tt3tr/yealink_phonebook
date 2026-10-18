@@ -21,7 +21,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 CT_HOSTNAME="${1:-phonebook}"              # Use CT_HOSTNAME to avoid conflicts with build.func
-GITHUB_REPO="https://github.com/matspi/yealink_phonebook.git"
+GITHUB_REPO="https://github.com/Snak3l3tt3tr/yealink_phonebook.git"
 MEMORY=2048
 SWAP=512
 DISK_SIZE=8

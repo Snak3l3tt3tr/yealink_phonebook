@@ -1,64 +1,191 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telefonbuch</title>
+    <title>Phonebook</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14'%3E☎%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📞 Telefonbuch</h1>
+        <header class="app-header">
+            <h1>📞 Phonebook</h1>
+            <button type="button" class="btn btn-secondary" id="logoutBtn">Sign Out</button>
         </header>
 
         <main>
             <!-- Contact Form -->
             <section class="contact-form">
-                <h2 id="form-title">Neuen Kontakt hinzufügen</h2>
+                <h2 id="form-title">Add New Contact</h2>
                 <form id="contactForm">
                     <input type="hidden" id="contactId">
 
                     <div class="form-group">
                         <label for="name">Name *</label>
-                        <input type="text" id="name" name="name" required>
+                        <input type="text" id="name" name="name" autocomplete="name" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="phone1">Telefonnummer 1</label>
-                        <input type="tel" id="phone1" name="phone1">
+                        <label for="phone1">Office Number</label>
+                        <input type="tel" id="phone1" name="phone1" autocomplete="tel">
                     </div>
 
                     <div class="form-group">
-                        <label for="phone2">Telefonnummer 2</label>
-                        <input type="tel" id="phone2" name="phone2">
+                        <label for="phone2">Mobile Number</label>
+                        <input type="tel" id="phone2" name="phone2" autocomplete="tel">
                     </div>
 
                     <div class="form-group">
-                        <label for="phone3">Telefonnummer 3</label>
-                        <input type="tel" id="phone3" name="phone3">
+                        <label for="phone3">Other Number</label>
+                        <input type="tel" id="phone3" name="phone3" autocomplete="tel">
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="submitBtn">Kontakt hinzufügen</button>
-                        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Abbrechen</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Add Contact</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Cancel</button>
                     </div>
                 </form>
+            </section>
+
+            <!-- CSV Import and Export -->
+            <section class="bulk-tools" aria-labelledby="bulk-tools-title">
+                <div class="bulk-tools-header">
+                    <div>
+                        <h2 id="bulk-tools-title">CSV Import and Export</h2>
+                        <p>Columns: <code>name</code>, <code>phone1</code>, <code>phone2</code>, <code>phone3</code>. Name is required.</p>
+                    </div>
+                    <a class="btn btn-secondary" href="/api/contacts/export.csv" download>
+                        Export All Contacts
+                    </a>
+                </div>
+
+                <form id="importForm" class="import-form">
+                    <div class="form-group">
+                        <label for="csvFile">Choose CSV File</label>
+                        <input type="file" id="csvFile" name="file" accept=".csv,text/csv" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duplicateStrategy">When a name already exists</label>
+                        <select id="duplicateStrategy" name="duplicateStrategy">
+                            <option value="skip">Skip existing contact</option>
+                            <option value="update">Update existing contact</option>
+                            <option value="error">Report as an error</option>
+                        </select>
+                        <small>Matching ignores capitalization and surrounding spaces.</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="importBtn">Import Contacts</button>
+                </form>
+
+                <div id="importResult" class="import-result" role="status" aria-live="polite" hidden>
+                    <h3>Import Result</h3>
+                    <p id="importSummary"></p>
+                    <div class="table-scroll" id="importErrorsContainer" hidden>
+                        <table class="import-errors">
+                            <thead>
+                                <tr>
+                                    <th>Row</th>
+                                    <th>Name</th>
+                                    <th>Error</th>
+                                </tr>
+                            </thead>
+                            <tbody id="importErrorsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Maintenance -->
+            <section class="maintenance" aria-labelledby="maintenance-title">
+                <h2 id="maintenance-title">Maintenance</h2>
+                <div class="maintenance-summary">
+                    <strong id="maintenanceContactCount">0 contacts</strong>
+                    <span>stored in the persistent Docker volume <code>phonebook-data</code></span>
+                </div>
+
+                <div class="maintenance-grid">
+                    <article class="maintenance-card">
+                        <h3>Phone Connection</h3>
+                        <p>The phone pulls contacts from this address. Open this app using the server's LAN address before downloading the setup file.</p>
+                        <div class="form-group">
+                            <label for="remotePhonebookUrl">Remote Phone Book URL</label>
+                            <input type="text" id="remotePhonebookUrl" readonly>
+                        </div>
+                        <p>Yealink T40G address: <code>192.168.131.165</code></p>
+                        <div class="maintenance-actions">
+                            <a class="btn btn-primary" href="http://192.168.131.165" target="_blank" rel="noopener">Open Phone Admin</a>
+                            <a class="btn btn-secondary" href="/yealink/remote-phonebook.cfg" download>Download Phone Setup</a>
+                        </div>
+                    </article>
+
+                    <article class="maintenance-card">
+                        <h3>Backup and Restore</h3>
+                        <p>Back up before updates and before clearing contacts. Restore a CSV backup using the import form above.</p>
+                        <div class="maintenance-actions">
+                            <a class="btn btn-secondary" href="/api/contacts/export.csv" download>Download CSV Backup</a>
+                            <a class="btn btn-secondary" href="/yealink/local-contacts.xml" download>Download Yealink Local XML</a>
+                        </div>
+                    </article>
+
+                    <article class="maintenance-card">
+                        <h3>Routine Maintenance</h3>
+                        <ul>
+                            <li>Keep a current CSV backup outside the Docker host.</li>
+                            <li>Update with <code>docker compose up -d --build</code>.</li>
+                            <li>Review problems with <code>docker compose logs --tail 100 phonebook</code>.</li>
+                            <li>Do not delete the <code>phonebook-data</code> volume unless you intend to erase the database.</li>
+                        </ul>
+                    </article>
+
+                    <article class="maintenance-card password-card">
+                        <h3>Change Administrator Password</h3>
+                        <p>Use at least 8 characters. Changing the password signs out every active session.</p>
+                        <form id="changePasswordForm" class="password-form">
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" autocomplete="current-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" minlength="8" maxlength="128" autocomplete="new-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" minlength="8" maxlength="128" autocomplete="new-password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="changePasswordBtn">Change Password</button>
+                        </form>
+                        <p id="passwordStatus" class="maintenance-status" role="status" aria-live="polite"></p>
+                    </article>
+                </div>
+
+                <p class="security-notice"><strong>Security:</strong> Web management requires an administrator login. The Yealink XML URL remains public so phones can synchronize; use HTTPS and restrict network access where possible.</p>
+
+                <div class="danger-zone">
+                    <div>
+                        <h3>Clear All Contacts</h3>
+                        <p>Permanently delete every contact. Download a CSV backup first.</p>
+                    </div>
+                    <button type="button" class="btn btn-danger" id="clearAllBtn" disabled>Delete All Contacts</button>
+                </div>
+                <p id="maintenanceStatus" class="maintenance-status" role="status" aria-live="polite"></p>
             </section>
 
             <!-- Contacts List -->
             <section class="contacts-list">
                 <div class="contacts-header">
-                    <h2>Kontakte</h2>
+                    <h2>Contacts</h2>
                     <div class="search-box" id="searchBox" style="display: none;">
                         <input type="search"
                                id="searchInput"
-                               placeholder="🔍 Suche nach Name oder Telefonnummer..."
+                               placeholder="🔍 Search by name or phone number..."
                                autocomplete="off">
                         <span class="search-count" id="searchCount"></span>
                     </div>
                 </div>
-                <div id="loading" class="loading">Lädt...</div>
+                <div id="loading" class="loading">Loading...</div>
                 <div id="error" class="error" style="display: none;"></div>
 
                 <!-- Desktop Table View -->
@@ -66,10 +193,10 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Telefon 1</th>
-                            <th>Telefon 2</th>
-                            <th>Telefon 3</th>
-                            <th>Aktionen</th>
+                            <th>Office</th>
+                            <th>Mobile</th>
+                            <th>Other</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="contactsBody">
@@ -80,11 +207,11 @@
                 <div id="contactsCards" class="mobile-cards" style="display: none;"></div>
 
                 <div id="emptyState" class="empty-state" style="display: none;">
-                    Noch keine Kontakte vorhanden. Fügen Sie oben Ihren ersten Kontakt hinzu!
+                    No contacts yet. Add your first contact above!
                 </div>
 
                 <div id="noResults" class="empty-state" style="display: none;">
-                    Keine Kontakte gefunden. Versuchen Sie eine andere Suche.
+                    No contacts found. Try a different search.
                 </div>
             </section>
         </main>
