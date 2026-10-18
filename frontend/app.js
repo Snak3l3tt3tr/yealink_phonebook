@@ -47,7 +47,7 @@ async function loadContacts() {
         const response = await fetch(`${API_BASE_URL}/contacts`);
 
         if (!response.ok) {
-            throw new Error('Kontakte konnten nicht geladen werden');
+            throw new Error('Contacts could not be loaded');
         }
 
         const contacts = await response.json();
@@ -62,7 +62,7 @@ async function loadContacts() {
             searchBox.style.display = 'none';
         }
     } catch (err) {
-        showError('Fehler beim Laden der Kontakte: ' + err.message);
+        showError('Error loading contacts: ' + err.message);
         hideLoading();
     }
 }
@@ -72,14 +72,14 @@ async function handleImport(e) {
     e.preventDefault();
 
     if (!csvFile.files.length) {
-        showError('Bitte wählen Sie eine CSV-Datei aus.');
+        showError('Please choose a CSV file.');
         return;
     }
 
     const formData = new FormData();
     formData.append('file', csvFile.files[0]);
     importBtn.disabled = true;
-    importBtn.textContent = 'Wird importiert...';
+    importBtn.textContent = 'Importing...';
     importResult.hidden = true;
 
     try {
@@ -91,28 +91,28 @@ async function handleImport(e) {
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.detail || 'CSV-Datei konnte nicht importiert werden');
+            throw new Error(result.detail || 'CSV file could not be imported');
         }
 
         displayImportResult(result);
         importForm.reset();
         await loadContacts();
     } catch (err) {
-        showError('Fehler beim CSV-Import: ' + err.message);
+        showError('CSV import error: ' + err.message);
     } finally {
         importBtn.disabled = false;
-        importBtn.textContent = 'Kontakte importieren';
+        importBtn.textContent = 'Import Contacts';
     }
 }
 
 function displayImportResult(result) {
     importResult.hidden = false;
     importSummary.textContent = [
-        `${result.total_rows} Zeilen verarbeitet`,
-        `${result.created} neu`,
-        `${result.updated} aktualisiert`,
-        `${result.skipped} übersprungen`,
-        `${result.error_count} fehlerhaft`
+        `${result.total_rows} ${result.total_rows === 1 ? 'row' : 'rows'} processed`,
+        `${result.created} created`,
+        `${result.updated} updated`,
+        `${result.skipped} skipped`,
+        `${result.error_count} ${result.error_count === 1 ? 'error' : 'errors'}`
     ].join(' · ');
 
     importErrorsBody.innerHTML = '';
@@ -172,8 +172,8 @@ function displayContacts(contacts) {
             <td>${escapeHtml(contact.phone2 || '-')}</td>
             <td>${escapeHtml(contact.phone3 || '-')}</td>
             <td>
-                <button class="btn btn-edit" onclick="editContact(${contact.id})">Bearbeiten</button>
-                <button class="btn btn-delete" onclick="deleteContact(${contact.id})">Löschen</button>
+                <button class="btn btn-edit" onclick="editContact(${contact.id})">Edit</button>
+                <button class="btn btn-delete" onclick="deleteContact(${contact.id})">Delete</button>
             </td>
         `;
         contactsBody.appendChild(row);
@@ -186,9 +186,9 @@ function displayContacts(contacts) {
         card.dataset.contactId = contact.id;
 
         const phones = [];
-        if (contact.phone1) phones.push({ label: 'Telefon 1', number: contact.phone1 });
-        if (contact.phone2) phones.push({ label: 'Telefon 2', number: contact.phone2 });
-        if (contact.phone3) phones.push({ label: 'Telefon 3', number: contact.phone3 });
+        if (contact.phone1) phones.push({ label: 'Phone 1', number: contact.phone1 });
+        if (contact.phone2) phones.push({ label: 'Phone 2', number: contact.phone2 });
+        if (contact.phone3) phones.push({ label: 'Phone 3', number: contact.phone3 });
 
         const phonesHtml = phones.length > 0
             ? phones.map(p => `
@@ -197,7 +197,7 @@ function displayContacts(contacts) {
                     <span class="contact-card-phone-number">${escapeHtml(p.number)}</span>
                 </div>
             `).join('')
-            : '<div class="contact-card-phone"><span style="color: #95a5a6;">Keine Telefonnummern</span></div>';
+            : '<div class="contact-card-phone"><span style="color: #95a5a6;">No phone numbers</span></div>';
 
         card.innerHTML = `
             <div class="contact-card-header">
@@ -207,8 +207,8 @@ function displayContacts(contacts) {
                 ${phonesHtml}
             </div>
             <div class="contact-card-actions">
-                <button class="btn btn-edit" onclick="editContact(${contact.id})">Bearbeiten</button>
-                <button class="btn btn-delete" onclick="deleteContact(${contact.id})">Löschen</button>
+                <button class="btn btn-edit" onclick="editContact(${contact.id})">Edit</button>
+                <button class="btn btn-delete" onclick="deleteContact(${contact.id})">Delete</button>
             </div>
         `;
         contactsCards.appendChild(card);
@@ -251,13 +251,13 @@ async function handleSubmit(e) {
         }
 
         if (!response.ok) {
-            throw new Error('Kontakt konnte nicht gespeichert werden');
+            throw new Error('Contact could not be saved');
         }
 
         resetForm();
         loadContacts();
     } catch (err) {
-        showError('Fehler beim Speichern des Kontakts: ' + err.message);
+        showError('Error saving contact: ' + err.message);
     }
 }
 
@@ -267,7 +267,7 @@ async function editContact(id) {
         const response = await fetch(`${API_BASE_URL}/contacts/${id}`);
 
         if (!response.ok) {
-            throw new Error('Kontakt konnte nicht geladen werden');
+            throw new Error('Contact could not be loaded');
         }
 
         const contact = await response.json();
@@ -280,20 +280,20 @@ async function editContact(id) {
 
         // Update UI state
         editingContactId = id;
-        formTitle.textContent = 'Kontakt bearbeiten';
-        submitBtn.textContent = 'Kontakt aktualisieren';
+        formTitle.textContent = 'Edit Contact';
+        submitBtn.textContent = 'Update Contact';
         cancelBtn.style.display = 'inline-block';
 
         // Scroll to form
         contactForm.scrollIntoView({ behavior: 'smooth' });
     } catch (err) {
-        showError('Fehler beim Laden des Kontakts zum Bearbeiten: ' + err.message);
+        showError('Error loading contact for editing: ' + err.message);
     }
 }
 
 // Delete contact
 async function deleteContact(id) {
-    if (!confirm('Möchten Sie diesen Kontakt wirklich löschen?')) {
+    if (!confirm('Are you sure you want to delete this contact?')) {
         return;
     }
 
@@ -303,12 +303,12 @@ async function deleteContact(id) {
         });
 
         if (!response.ok) {
-            throw new Error('Kontakt konnte nicht gelöscht werden');
+            throw new Error('Contact could not be deleted');
         }
 
         loadContacts();
     } catch (err) {
-        showError('Fehler beim Löschen des Kontakts: ' + err.message);
+        showError('Error deleting contact: ' + err.message);
     }
 }
 
@@ -316,8 +316,8 @@ async function deleteContact(id) {
 function resetForm() {
     contactForm.reset();
     editingContactId = null;
-    formTitle.textContent = 'Neuen Kontakt hinzufügen';
-    submitBtn.textContent = 'Kontakt hinzufügen';
+    formTitle.textContent = 'Add New Contact';
+    submitBtn.textContent = 'Add Contact';
     cancelBtn.style.display = 'none';
 }
 
@@ -379,6 +379,6 @@ function updateSearchCount(count) {
     if (count === total) {
         searchCount.textContent = '';
     } else {
-        searchCount.textContent = `${count} von ${total}`;
+        searchCount.textContent = `${count} of ${total}`;
     }
 }

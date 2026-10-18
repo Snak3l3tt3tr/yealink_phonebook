@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telefonbuch</title>
+    <title>Phonebook</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14'%3E☎%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📞 Telefonbuch</h1>
+            <h1>📞 Phonebook</h1>
         </header>
 
         <main>
             <!-- Contact Form -->
             <section class="contact-form">
-                <h2 id="form-title">Neuen Kontakt hinzufügen</h2>
+                <h2 id="form-title">Add New Contact</h2>
                 <form id="contactForm">
                     <input type="hidden" id="contactId">
 
@@ -26,23 +26,23 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="phone1">Telefonnummer 1</label>
+                        <label for="phone1">Phone Number 1</label>
                         <input type="tel" id="phone1" name="phone1" autocomplete="tel">
                     </div>
 
                     <div class="form-group">
-                        <label for="phone2">Telefonnummer 2</label>
+                        <label for="phone2">Phone Number 2</label>
                         <input type="tel" id="phone2" name="phone2" autocomplete="tel">
                     </div>
 
                     <div class="form-group">
-                        <label for="phone3">Telefonnummer 3</label>
+                        <label for="phone3">Phone Number 3</label>
                         <input type="tel" id="phone3" name="phone3" autocomplete="tel">
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="submitBtn">Kontakt hinzufügen</button>
-                        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Abbrechen</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Add Contact</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Cancel</button>
                     </div>
                 </form>
             </section>
@@ -51,43 +51,43 @@
             <section class="bulk-tools" aria-labelledby="bulk-tools-title">
                 <div class="bulk-tools-header">
                     <div>
-                        <h2 id="bulk-tools-title">CSV-Import und -Export</h2>
-                        <p>Spalten: <code>name</code>, <code>phone1</code>, <code>phone2</code>, <code>phone3</code>. Der Name ist erforderlich.</p>
+                        <h2 id="bulk-tools-title">CSV Import and Export</h2>
+                        <p>Columns: <code>name</code>, <code>phone1</code>, <code>phone2</code>, <code>phone3</code>. Name is required.</p>
                     </div>
                     <a class="btn btn-secondary" href="/api/contacts/export.csv" download>
-                        Alle Kontakte exportieren
+                        Export All Contacts
                     </a>
                 </div>
 
                 <form id="importForm" class="import-form">
                     <div class="form-group">
-                        <label for="csvFile">CSV-Datei auswählen</label>
+                        <label for="csvFile">Choose CSV File</label>
                         <input type="file" id="csvFile" name="file" accept=".csv,text/csv" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="duplicateStrategy">Bei gleichem Namen</label>
+                        <label for="duplicateStrategy">When a name already exists</label>
                         <select id="duplicateStrategy" name="duplicateStrategy">
-                            <option value="skip">Vorhandenen Kontakt überspringen</option>
-                            <option value="update">Vorhandenen Kontakt aktualisieren</option>
-                            <option value="error">Als Fehler melden</option>
+                            <option value="skip">Skip existing contact</option>
+                            <option value="update">Update existing contact</option>
+                            <option value="error">Report as an error</option>
                         </select>
-                        <small>Der Vergleich ignoriert Groß-/Kleinschreibung und Leerzeichen am Rand.</small>
+                        <small>Matching ignores capitalization and surrounding spaces.</small>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" id="importBtn">Kontakte importieren</button>
+                    <button type="submit" class="btn btn-primary" id="importBtn">Import Contacts</button>
                 </form>
 
                 <div id="importResult" class="import-result" role="status" aria-live="polite" hidden>
-                    <h3>Importergebnis</h3>
+                    <h3>Import Result</h3>
                     <p id="importSummary"></p>
                     <div class="table-scroll" id="importErrorsContainer" hidden>
                         <table class="import-errors">
                             <thead>
                                 <tr>
-                                    <th>Zeile</th>
+                                    <th>Row</th>
                                     <th>Name</th>
-                                    <th>Fehler</th>
+                                    <th>Error</th>
                                 </tr>
                             </thead>
                             <tbody id="importErrorsBody"></tbody>
@@ -99,16 +99,16 @@
             <!-- Contacts List -->
             <section class="contacts-list">
                 <div class="contacts-header">
-                    <h2>Kontakte</h2>
+                    <h2>Contacts</h2>
                     <div class="search-box" id="searchBox" style="display: none;">
                         <input type="search"
                                id="searchInput"
-                               placeholder="🔍 Suche nach Name oder Telefonnummer..."
+                               placeholder="🔍 Search by name or phone number..."
                                autocomplete="off">
                         <span class="search-count" id="searchCount"></span>
                     </div>
                 </div>
-                <div id="loading" class="loading">Lädt...</div>
+                <div id="loading" class="loading">Loading...</div>
                 <div id="error" class="error" style="display: none;"></div>
 
                 <!-- Desktop Table View -->
@@ -116,10 +116,10 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Telefon 1</th>
-                            <th>Telefon 2</th>
-                            <th>Telefon 3</th>
-                            <th>Aktionen</th>
+                            <th>Phone 1</th>
+                            <th>Phone 2</th>
+                            <th>Phone 3</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="contactsBody">
@@ -130,11 +130,11 @@
                 <div id="contactsCards" class="mobile-cards" style="display: none;"></div>
 
                 <div id="emptyState" class="empty-state" style="display: none;">
-                    Noch keine Kontakte vorhanden. Fügen Sie oben Ihren ersten Kontakt hinzu!
+                    No contacts yet. Add your first contact above!
                 </div>
 
                 <div id="noResults" class="empty-state" style="display: none;">
-                    Keine Kontakte gefunden. Versuchen Sie eine andere Suche.
+                    No contacts found. Try a different search.
                 </div>
             </section>
         </main>

@@ -39,10 +39,15 @@ def test_yealink_xml_still_exports_each_number_and_escapes_text(client):
     assert "<Telephone>100&amp;1</Telephone>" in response.text
 
 
-def test_web_ui_exposes_csv_import_and_export_controls(client):
+def test_web_ui_is_english_and_exposes_csv_import_and_export_controls(client):
     response = client.get("/")
 
     assert response.status_code == 200
+    assert '<html lang="en">' in response.text
+    assert "Add New Contact" in response.text
+    assert "Import Contacts" in response.text
+    assert "Export All Contacts" in response.text
     assert 'id="importForm"' in response.text
     assert 'id="duplicateStrategy"' in response.text
     assert 'href="/api/contacts/export.csv"' in response.text
+    assert "Telefonbuch" not in response.text

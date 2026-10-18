@@ -85,7 +85,7 @@ Then access http://localhost:8080
 
 ## CSV Import and Export
 
-Open the web interface and use **CSV-Import und -Export**. The CSV header uses
+Open the web interface and use **CSV Import and Export**. The CSV header uses
 these field names:
 
 ```csv
