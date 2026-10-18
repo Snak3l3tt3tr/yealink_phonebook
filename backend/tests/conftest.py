@@ -14,7 +14,7 @@ from main import app  # noqa: E402
 
 
 @pytest.fixture()
-def client(tmp_path):
+def anonymous_client(tmp_path):
     database_path = tmp_path / "test.db"
     engine = create_engine(
         f"sqlite:///{database_path}", connect_args={"check_same_thread": False}
@@ -32,7 +32,18 @@ def client(tmp_path):
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    app.state.session_factory = TestingSessionLocal
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+    app.state.session_factory = None
     engine.dispose()
+
+
+@pytest.fixture()
+def client(anonymous_client):
+    response = anonymous_client.post(
+        "/api/auth/login", json={"username": "admin", "password": "admin"}
+    )
+    assert response.status_code == 200
+    return anonymous_client

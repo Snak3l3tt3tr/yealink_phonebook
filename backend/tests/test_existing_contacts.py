@@ -79,5 +79,5 @@ def test_web_ui_is_english_and_exposes_csv_import_and_export_controls(client):
     assert 'id="clearAllBtn"' in response.text
     assert 'href="/yealink/phonebook.xml"' in response.text
     assert "Back up before updates" in response.text
-    assert "no sign-in protection" in response.text
+    assert "requires an administrator login" in response.text
     assert "Telefonbuch" not in response.text

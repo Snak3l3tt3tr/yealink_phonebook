@@ -29,6 +29,10 @@ const importErrorsBody = document.getElementById('importErrorsBody');
 const maintenanceContactCount = document.getElementById('maintenanceContactCount');
 const clearAllBtn = document.getElementById('clearAllBtn');
 const maintenanceStatus = document.getElementById('maintenanceStatus');
+const logoutBtn = document.getElementById('logoutBtn');
+const changePasswordForm = document.getElementById('changePasswordForm');
+const changePasswordBtn = document.getElementById('changePasswordBtn');
+const passwordStatus = document.getElementById('passwordStatus');
 
 // State
 let editingContactId = null;
@@ -42,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', handleSearch);
     importForm.addEventListener('submit', handleImport);
     clearAllBtn.addEventListener('click', handleClearAll);
+    logoutBtn.addEventListener('click', handleLogout);
+    changePasswordForm.addEventListener('submit', handlePasswordChange);
 });
 
 // Load all contacts
@@ -70,6 +76,49 @@ async function loadContacts() {
     } catch (err) {
         showError('Error loading contacts: ' + err.message);
         hideLoading();
+    }
+}
+
+async function handleLogout() {
+    logoutBtn.disabled = true;
+    await fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST' });
+    window.location.replace('/login.html');
+}
+
+async function handlePasswordChange(e) {
+    e.preventDefault();
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (newPassword !== confirmPassword) {
+        passwordStatus.textContent = 'New passwords do not match.';
+        return;
+    }
+
+    changePasswordBtn.disabled = true;
+    changePasswordBtn.textContent = 'Changing...';
+    passwordStatus.textContent = '';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.detail || 'Password could not be changed');
+        }
+        window.location.replace('/login.html?changed=1');
+    } catch (err) {
+        passwordStatus.textContent = err.message;
+        changePasswordBtn.disabled = false;
+        changePasswordBtn.textContent = 'Change Password';
     }
 }
 

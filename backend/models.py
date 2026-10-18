@@ -1,7 +1,7 @@
 """
 SQLAlchemy models for the phonebook database.
 """
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String
 from database import Base
 
 
@@ -18,3 +18,23 @@ class Contact(Base):
 
     def __repr__(self):
         return f"<Contact(name={self.name}, phone1={self.phone1})>"
+
+
+class AdminUser(Base):
+    """Single administrator account stored in the application database."""
+
+    __tablename__ = "admin_users"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String(50), nullable=False, unique=True)
+    password_hash = Column(String(255), nullable=False)
+
+
+class AuthSession(Base):
+    """Server-side login session; only a hash of the cookie is stored."""
+
+    __tablename__ = "auth_sessions"
+
+    token_hash = Column(String(64), primary_key=True)
+    user_id = Column(Integer, ForeignKey("admin_users.id"), nullable=False)
+    expires_at = Column(Integer, nullable=False)

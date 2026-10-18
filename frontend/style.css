@@ -31,6 +31,17 @@ header h1 {
     font-size: 2em;
 }
 
+.app-header {
+    position: relative;
+}
+
+.app-header #logoutBtn {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+}
+
 main {
     display: grid;
     gap: 30px;
@@ -291,6 +302,22 @@ h2 {
     padding-left: 20px;
 }
 
+.password-card {
+    grid-column: 1 / -1;
+}
+
+.password-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.password-form .form-group {
+    margin-bottom: 0;
+}
+
 .maintenance-actions {
     display: flex;
     flex-wrap: wrap;
@@ -507,6 +534,7 @@ h2 {
 
     .bulk-tools-header,
     .import-form,
+    .password-form,
     .danger-zone {
         display: flex;
         flex-direction: column;
@@ -515,6 +543,13 @@ h2 {
 
     .maintenance-grid {
         grid-template-columns: 1fr;
+    }
+
+    .app-header #logoutBtn {
+        position: static;
+        width: auto;
+        margin-top: 12px;
+        transform: none;
     }
 
     .btn {

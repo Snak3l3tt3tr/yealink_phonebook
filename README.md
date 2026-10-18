@@ -9,6 +9,7 @@ A lightweight web application for maintaining a phonebook with support for Yeali
 - 📱 XML export for Yealink IP phones
 - 📥 CSV bulk import with validation, duplicate handling, and row-level errors
 - 📤 CSV export of all contacts
+- 🔐 Administrator login and password management
 - 🐳 Docker support for easy deployment
 - 🔄 RESTful API
 - 💾 SQLite database (no external database required)
@@ -47,6 +48,9 @@ docker-compose up -d
 - API Documentation: http://localhost:8681/docs
 - Yealink XML: http://localhost:8681/yealink/phonebook.xml
 
+Sign in with username `admin` and password `admin`, then change the password
+immediately in **Maintenance → Change Administrator Password**.
+
 ### Manual Setup
 
 1. **Install Python dependencies:**
@@ -62,14 +66,9 @@ pip install -r requirements.txt
 python main.py
 ```
 
-3. **Access the frontend:**
-Open `frontend/index.html` in your browser, or serve it with a simple HTTP server:
-```bash
-cd frontend
-python -m http.server 8080
-```
-
-Then access http://localhost:8080
+3. **Access the application:**
+Open http://localhost:8000. The FastAPI service serves the login page and
+frontend together so the session cookie remains same-origin.
 
 ## API Endpoints
 
@@ -83,6 +82,18 @@ Then access http://localhost:8080
 - `DELETE /api/contacts?confirm=DELETE%20ALL` - Delete every contact
 - `POST /api/contacts/import` - Import a UTF-8 CSV file
 - `GET /api/contacts/export.csv` - Download all contacts as CSV
+
+### Authentication
+
+- `POST /api/auth/login` - Sign in and create a 12-hour session
+- `POST /api/auth/logout` - Sign out
+- `POST /api/auth/change-password` - Change the administrator password
+
+The management interface and contact APIs require login. The health endpoint
+`GET /api` and Yealink synchronization endpoint `GET /yealink/phonebook.xml`
+remain public so deployment checks and configured phones continue to work.
+Because the XML contains contact details, expose the service only over HTTPS
+and restrict port `8681` to trusted networks or devices where possible.
 
 ## CSV Import and Export
 
@@ -130,8 +141,24 @@ typing `DELETE ALL`; it cannot be undone, so download a CSV backup first.
 
 Docker stores the SQLite database in the named `phonebook-data` volume. A
 container rebuild keeps this volume, but deleting the volume erases the stored
-contacts. The application has no built-in sign-in protection, so restrict
-access with a firewall, VPN, or authenticated reverse proxy.
+contacts and administrator password.
+
+### Forgotten Administrator Password
+
+The password is stored as a one-way PBKDF2 hash and cannot be read from the
+database. To reset it directly from the database, run these commands in
+PowerShell from the application folder:
+
+```powershell
+docker compose stop phonebook
+docker compose run --rm --no-deps phonebook python -c "import sqlite3; db=sqlite3.connect('/data/phonebook.db'); db.execute('DELETE FROM auth_sessions'); db.execute('DELETE FROM admin_users'); db.commit()"
+docker compose up -d phonebook
+```
+
+This removes only the administrator account and login sessions; contacts are
+not deleted. Open the login page and use `admin` / `admin`. The application
+recreates the default account, after which you should immediately set a new
+password from **Maintenance**.
 
 ### Yealink Integration
 
@@ -168,7 +195,10 @@ yealink_phonebook/
 ├── frontend/
 │   ├── index.html        # Main HTML page
 │   ├── style.css         # Styles
-│   └── app.js           # JavaScript application
+│   ├── app.js            # JavaScript application
+│   ├── login.html        # Administrator login page
+│   ├── login.css         # Login page styles
+│   └── login.js          # Login behavior
 ├── .github/
 │   └── workflows/       # CI/CD workflows
 ├── Dockerfile

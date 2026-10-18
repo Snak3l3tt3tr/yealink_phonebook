@@ -9,8 +9,9 @@
 </head>
 <body>
     <div class="container">
-        <header>
+        <header class="app-header">
             <h1>📞 Phonebook</h1>
+            <button type="button" class="btn btn-secondary" id="logoutBtn">Sign Out</button>
         </header>
 
         <main>
@@ -123,9 +124,30 @@
                             <li>Do not delete the <code>phonebook-data</code> volume unless you intend to erase the database.</li>
                         </ul>
                     </article>
+
+                    <article class="maintenance-card password-card">
+                        <h3>Change Administrator Password</h3>
+                        <p>Use at least 8 characters. Changing the password signs out every active session.</p>
+                        <form id="changePasswordForm" class="password-form">
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" autocomplete="current-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" minlength="8" maxlength="128" autocomplete="new-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" minlength="8" maxlength="128" autocomplete="new-password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="changePasswordBtn">Change Password</button>
+                        </form>
+                        <p id="passwordStatus" class="maintenance-status" role="status" aria-live="polite"></p>
+                    </article>
                 </div>
 
-                <p class="security-notice"><strong>Security:</strong> This application has no sign-in protection. Anyone who can reach it can change or delete contacts. Restrict access with a firewall, VPN, or authenticated reverse proxy.</p>
+                <p class="security-notice"><strong>Security:</strong> Web management requires an administrator login. The Yealink XML URL remains public so phones can synchronize; use HTTPS and restrict network access where possible.</p>
 
                 <div class="danger-zone">
                     <div>
