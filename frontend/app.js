@@ -186,9 +186,9 @@ function displayContacts(contacts) {
         card.dataset.contactId = contact.id;
 
         const phones = [];
-        if (contact.phone1) phones.push({ label: 'Phone 1', number: contact.phone1 });
-        if (contact.phone2) phones.push({ label: 'Phone 2', number: contact.phone2 });
-        if (contact.phone3) phones.push({ label: 'Phone 3', number: contact.phone3 });
+        if (contact.phone1) phones.push({ label: 'Office', number: contact.phone1 });
+        if (contact.phone2) phones.push({ label: 'Mobile', number: contact.phone2 });
+        if (contact.phone3) phones.push({ label: 'Other', number: contact.phone3 });
 
         const phonesHtml = phones.length > 0
             ? phones.map(p => `

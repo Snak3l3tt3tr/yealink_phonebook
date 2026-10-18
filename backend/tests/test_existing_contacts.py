@@ -19,14 +19,14 @@ def test_existing_contact_crud_still_works(client):
     assert client.get(f"/api/contacts/{contact_id}").status_code == 404
 
 
-def test_yealink_xml_still_exports_each_number_and_escapes_text(client):
+def test_yealink_xml_matches_phone_contact_export_and_escapes_attributes(client):
     client.post(
         "/api/contacts",
         json={
             "name": "R&D <Desk>",
-            "phone1": "100&1",
+            "phone1": '100&1"',
             "phone2": "1002",
-            "phone3": None,
+            "phone3": "1003",
         },
     )
 
@@ -34,9 +34,15 @@ def test_yealink_xml_still_exports_each_number_and_escapes_text(client):
 
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("application/xml")
-    assert response.text.count("<DirectoryEntry>") == 2
-    assert "<Name>R&amp;D &lt;Desk&gt;</Name>" in response.text
-    assert "<Telephone>100&amp;1</Telephone>" in response.text
+    assert '<group display_name="All Contacts" />' in response.text
+    assert '<group display_name="Blacklist" />' in response.text
+    assert '<group display_name="Blocklist" ring="" />' in response.text
+    assert response.text.count("<contact ") == 1
+    assert 'display_name="R&amp;D &lt;Desk&gt;"' in response.text
+    assert 'office_number="100&amp;1&quot;"' in response.text
+    assert 'mobile_number="1002"' in response.text
+    assert 'other_number="1003"' in response.text
+    assert 'line="-1" ring="Auto" group_id_name="All Contacts"' in response.text
 
 
 def test_web_ui_is_english_and_exposes_csv_import_and_export_controls(client):
@@ -45,6 +51,9 @@ def test_web_ui_is_english_and_exposes_csv_import_and_export_controls(client):
     assert response.status_code == 200
     assert '<html lang="en">' in response.text
     assert "Add New Contact" in response.text
+    assert "Office Number" in response.text
+    assert "Mobile Number" in response.text
+    assert "Other Number" in response.text
     assert "Import Contacts" in response.text
     assert "Export All Contacts" in response.text
     assert 'id="importForm"' in response.text

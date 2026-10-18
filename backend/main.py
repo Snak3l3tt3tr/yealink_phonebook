@@ -249,25 +249,30 @@ async def delete_contact(contact_id: int, db: Session = Depends(get_db)):
 
 @app.get("/yealink/phonebook.xml")
 async def get_yealink_phonebook(db: Session = Depends(get_db)):
-    """
-    Generate XML phonebook for Yealink IP phones.
-    Format according to: https://support.yealink.com/document-detail/27505959170c49b9a71938534e666998
-    """
+    """Generate the local-contact XML format exported by Yealink phones."""
     contacts = db.query(Contact).all()
 
-    xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>']
-    xml_lines.append('<YealinkIPPhoneDirectory>')
+    xml_lines = [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<root_group>',
+        '\t<group display_name="All Contacts" />',
+        '\t<group display_name="Blacklist" />',
+        '\t<group display_name="Blocklist" ring="" />',
+        '</root_group>',
+        '<root_contact>',
+    ]
 
     for contact in contacts:
-        # Add entries for each phone number
-        for phone_num in [contact.phone1, contact.phone2, contact.phone3]:
-            if phone_num:
-                xml_lines.append('  <DirectoryEntry>')
-                xml_lines.append(f'    <Name>{_escape_xml(contact.name)}</Name>')
-                xml_lines.append(f'    <Telephone>{_escape_xml(phone_num)}</Telephone>')
-                xml_lines.append('  </DirectoryEntry>')
+        xml_lines.append(
+            '\t<contact '
+            f'display_name="{_escape_xml(contact.name)}" '
+            f'office_number="{_escape_xml(contact.phone1)}" '
+            f'mobile_number="{_escape_xml(contact.phone2)}" '
+            f'other_number="{_escape_xml(contact.phone3)}" '
+            'line="-1" ring="Auto" group_id_name="All Contacts" />'
+        )
 
-    xml_lines.append('</YealinkIPPhoneDirectory>')
+    xml_lines.append('</root_contact>')
 
     xml_content = '\n'.join(xml_lines)
     return Response(content=xml_content, media_type="application/xml")
