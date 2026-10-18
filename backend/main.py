@@ -199,6 +199,17 @@ async def import_contacts(
     return summary
 
 
+@app.delete("/api/contacts")
+async def delete_all_contacts(
+    confirm: Literal["DELETE ALL"] = Query(...),
+    db: Session = Depends(get_db),
+):
+    """Delete every contact after explicit confirmation."""
+    deleted = db.query(Contact).delete(synchronize_session=False)
+    db.commit()
+    return {"deleted": deleted}
+
+
 @app.get("/api/contacts/{contact_id}", response_model=ContactResponse)
 async def get_contact(contact_id: int, db: Session = Depends(get_db)):
     """Get a specific contact by ID."""

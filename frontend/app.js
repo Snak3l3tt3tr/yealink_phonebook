@@ -26,6 +26,9 @@ const importResult = document.getElementById('importResult');
 const importSummary = document.getElementById('importSummary');
 const importErrorsContainer = document.getElementById('importErrorsContainer');
 const importErrorsBody = document.getElementById('importErrorsBody');
+const maintenanceContactCount = document.getElementById('maintenanceContactCount');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const maintenanceStatus = document.getElementById('maintenanceStatus');
 
 // State
 let editingContactId = null;
@@ -38,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelBtn.addEventListener('click', resetForm);
     searchInput.addEventListener('input', handleSearch);
     importForm.addEventListener('submit', handleImport);
+    clearAllBtn.addEventListener('click', handleClearAll);
 });
 
 // Load all contacts
@@ -52,6 +56,8 @@ async function loadContacts() {
 
         const contacts = await response.json();
         allContacts = contacts;
+        maintenanceContactCount.textContent = `${contacts.length} ${contacts.length === 1 ? 'contact' : 'contacts'}`;
+        clearAllBtn.disabled = contacts.length === 0;
         displayContacts(contacts);
         hideLoading();
 
@@ -64,6 +70,39 @@ async function loadContacts() {
     } catch (err) {
         showError('Error loading contacts: ' + err.message);
         hideLoading();
+    }
+}
+
+// Delete every contact after an explicit typed confirmation
+async function handleClearAll() {
+    const confirmation = prompt('This permanently deletes every contact. Type DELETE ALL to continue:');
+    if (confirmation !== 'DELETE ALL') {
+        maintenanceStatus.textContent = confirmation === null ? 'Clear all cancelled.' : 'Contacts were not deleted. Confirmation did not match.';
+        return;
+    }
+
+    clearAllBtn.disabled = true;
+    clearAllBtn.textContent = 'Deleting...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/contacts?confirm=${encodeURIComponent(confirmation)}`, {
+            method: 'DELETE'
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || 'Contacts could not be deleted');
+        }
+
+        maintenanceStatus.textContent = `${result.deleted} ${result.deleted === 1 ? 'contact was' : 'contacts were'} deleted.`;
+        searchInput.value = '';
+        resetForm();
+        await loadContacts();
+    } catch (err) {
+        showError('Error clearing contacts: ' + err.message);
+    } finally {
+        clearAllBtn.textContent = 'Delete All Contacts';
+        clearAllBtn.disabled = allContacts.length === 0;
     }
 }
 

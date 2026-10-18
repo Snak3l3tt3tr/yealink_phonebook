@@ -96,6 +96,47 @@
                 </div>
             </section>
 
+            <!-- Maintenance -->
+            <section class="maintenance" aria-labelledby="maintenance-title">
+                <h2 id="maintenance-title">Maintenance</h2>
+                <div class="maintenance-summary">
+                    <strong id="maintenanceContactCount">0 contacts</strong>
+                    <span>stored in the persistent Docker volume <code>phonebook-data</code></span>
+                </div>
+
+                <div class="maintenance-grid">
+                    <article class="maintenance-card">
+                        <h3>Backup and Restore</h3>
+                        <p>Back up before updates and before clearing contacts. Restore a CSV backup using the import form above.</p>
+                        <div class="maintenance-actions">
+                            <a class="btn btn-secondary" href="/api/contacts/export.csv" download>Download CSV Backup</a>
+                            <a class="btn btn-secondary" href="/yealink/phonebook.xml" download>Download Yealink XML</a>
+                        </div>
+                    </article>
+
+                    <article class="maintenance-card">
+                        <h3>Routine Maintenance</h3>
+                        <ul>
+                            <li>Keep a current CSV backup outside the Docker host.</li>
+                            <li>Update with <code>docker compose up -d --build</code>.</li>
+                            <li>Review problems with <code>docker compose logs --tail 100 phonebook</code>.</li>
+                            <li>Do not delete the <code>phonebook-data</code> volume unless you intend to erase the database.</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <p class="security-notice"><strong>Security:</strong> This application has no sign-in protection. Anyone who can reach it can change or delete contacts. Restrict access with a firewall, VPN, or authenticated reverse proxy.</p>
+
+                <div class="danger-zone">
+                    <div>
+                        <h3>Clear All Contacts</h3>
+                        <p>Permanently delete every contact. Download a CSV backup first.</p>
+                    </div>
+                    <button type="button" class="btn btn-danger" id="clearAllBtn" disabled>Delete All Contacts</button>
+                </div>
+                <p id="maintenanceStatus" class="maintenance-status" role="status" aria-live="polite"></p>
+            </section>
+
             <!-- Contacts List -->
             <section class="contacts-list">
                 <div class="contacts-header">

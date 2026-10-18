@@ -80,6 +80,7 @@ Then access http://localhost:8080
 - `POST /api/contacts` - Create a new contact
 - `PUT /api/contacts/{id}` - Update a contact
 - `DELETE /api/contacts/{id}` - Delete a contact
+- `DELETE /api/contacts?confirm=DELETE%20ALL` - Delete every contact
 - `POST /api/contacts/import` - Import a UTF-8 CSV file
 - `GET /api/contacts/export.csv` - Download all contacts as CSV
 
@@ -119,6 +120,18 @@ pass it as `duplicate_strategy` to the import endpoint:
 
 The export contains `name,phone1,phone2,phone3` and can be imported again.
 Database IDs are intentionally excluded.
+
+## Maintenance
+
+The web interface includes a **Maintenance** section with the live contact
+count, CSV and Yealink XML downloads, Docker update and log commands, storage
+guidance, and a **Delete All Contacts** action. The bulk-delete action requires
+typing `DELETE ALL`; it cannot be undone, so download a CSV backup first.
+
+Docker stores the SQLite database in the named `phonebook-data` volume. A
+container rebuild keeps this volume, but deleting the volume erases the stored
+contacts. The application has no built-in sign-in protection, so restrict
+access with a firewall, VPN, or authenticated reverse proxy.
 
 ### Yealink Integration
 

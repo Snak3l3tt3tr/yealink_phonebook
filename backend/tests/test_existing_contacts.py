@@ -19,6 +19,20 @@ def test_existing_contact_crud_still_works(client):
     assert client.get(f"/api/contacts/{contact_id}").status_code == 404
 
 
+def test_clear_all_contacts_requires_confirmation(client):
+    for name in ("Alice", "Bob"):
+        client.post("/api/contacts", json={"name": name})
+
+    unconfirmed = client.delete("/api/contacts")
+    assert unconfirmed.status_code == 422
+    assert len(client.get("/api/contacts").json()) == 2
+
+    cleared = client.delete("/api/contacts", params={"confirm": "DELETE ALL"})
+    assert cleared.status_code == 200
+    assert cleared.json() == {"deleted": 2}
+    assert client.get("/api/contacts").json() == []
+
+
 def test_yealink_xml_matches_phone_contact_export_and_escapes_attributes(client):
     client.post(
         "/api/contacts",
@@ -60,4 +74,10 @@ def test_web_ui_is_english_and_exposes_csv_import_and_export_controls(client):
     assert 'id="importForm"' in response.text
     assert 'id="duplicateStrategy"' in response.text
     assert 'href="/api/contacts/export.csv"' in response.text
+    assert 'id="maintenance-title"' in response.text
+    assert 'id="maintenanceContactCount"' in response.text
+    assert 'id="clearAllBtn"' in response.text
+    assert 'href="/yealink/phonebook.xml"' in response.text
+    assert "Back up before updates" in response.text
+    assert "no sign-in protection" in response.text
     assert "Telefonbuch" not in response.text
