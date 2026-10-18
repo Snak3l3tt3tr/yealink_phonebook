@@ -7,6 +7,8 @@ A lightweight web application for maintaining a phonebook with support for Yeali
 - 📝 Simple web interface for managing contacts
 - 📞 Support for up to 3 phone numbers per contact
 - 📱 XML export for Yealink IP phones
+- 📥 CSV bulk import with validation, duplicate handling, and row-level errors
+- 📤 CSV export of all contacts
 - 🐳 Docker support for easy deployment
 - 🔄 RESTful API
 - 💾 SQLite database (no external database required)
@@ -31,7 +33,7 @@ A lightweight web application for maintaining a phonebook with support for Yeali
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/matspi/yealink_phonebook.git
+git clone https://github.com/Snak3l3tt3tr/yealink_phonebook.git
 cd yealink_phonebook
 ```
 
@@ -78,6 +80,45 @@ Then access http://localhost:8080
 - `POST /api/contacts` - Create a new contact
 - `PUT /api/contacts/{id}` - Update a contact
 - `DELETE /api/contacts/{id}` - Delete a contact
+- `POST /api/contacts/import` - Import a UTF-8 CSV file
+- `GET /api/contacts/export.csv` - Download all contacts as CSV
+
+## CSV Import and Export
+
+Open the web interface and use **CSV-Import und -Export**. The CSV header uses
+these field names:
+
+```csv
+name,phone1,phone2,phone3
+Alice Smith,+974 5555 0100,100,
+Bob Jones,200,,202
+```
+
+- `name` is required and may contain up to 255 characters.
+- `phone1`, `phone2`, and `phone3` are optional and may contain up to 50
+  characters each.
+- Files must be UTF-8 encoded, use a `.csv` extension, and be no larger than
+  2 MB.
+- Only `name` is required in the header; omitted phone columns are left
+  unchanged when an existing contact is updated.
+- Empty phone cells clear those values when the corresponding column is
+  present and the duplicate strategy is **update**.
+- Blank rows are ignored. Valid rows are imported even when other rows have
+  errors, and the web interface reports the original CSV row number for each
+  problem.
+
+Duplicate names are compared after trimming surrounding whitespace and without
+regard to letter case. Choose one of these strategies in the web interface or
+pass it as `duplicate_strategy` to the import endpoint:
+
+| Strategy | Behavior |
+|---|---|
+| `skip` (default) | Keep the existing contact and count the row as skipped |
+| `update` | Update the existing contact from columns present in the CSV |
+| `error` | Keep the existing contact and report a row-level duplicate error |
+
+The export contains `name,phone1,phone2,phone3` and can be imported again.
+Database IDs are intentionally excluded.
 
 ### Yealink Integration
 
@@ -116,9 +157,55 @@ yealink_phonebook/
 ### Running Tests
 
 ```bash
-cd backend
-pip install pytest pytest-cov httpx
-pytest
+python -m pip install -r backend/requirements-dev.txt
+python -m pytest backend/tests
+```
+
+## Windows Docker Deployment and Update
+
+Run these commands in PowerShell from the folder where you want the project:
+
+```powershell
+git clone https://github.com/Snak3l3tt3tr/yealink_phonebook.git
+Set-Location .\yealink_phonebook
+docker compose up -d --build
+docker compose ps
+```
+
+Open `http://localhost:8000/`. The named Docker volume `phonebook-data` stores
+the SQLite database independently of the container, so rebuilding the image
+does not delete contacts.
+
+Before updating an existing installation, make a consistent backup while the
+application is stopped:
+
+```powershell
+Set-Location C:\path\to\yealink_phonebook
+docker compose stop phonebook
+$container = docker compose ps -a -q phonebook
+docker cp "${container}:/data/phonebook.db" ".\phonebook-backup.db"
+docker compose start phonebook
+```
+
+Then pull and rebuild:
+
+```powershell
+git pull
+docker compose up -d --build
+docker compose ps
+Invoke-RestMethod http://localhost:8000/api
+```
+
+If the health request returns `status: ok`, open the web interface and import a
+small CSV first. The feature does not require a database migration.
+
+To restore the backup, stop the application before copying it back:
+
+```powershell
+docker compose stop phonebook
+$container = docker compose ps -a -q phonebook
+docker cp ".\phonebook-backup.db" "${container}:/data/phonebook.db"
+docker compose start phonebook
 ```
 
 ### Database
@@ -148,10 +235,10 @@ We provide an automated deployment script that creates and configures an LXC con
 
 ```bash
 # Quick deployment with auto-detected container ID and default hostname "phonebook"
-curl -fsSL https://raw.githubusercontent.com/matspi/yealink_phonebook/main/deploy-proxmox.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Snak3l3tt3tr/yealink_phonebook/main/deploy-proxmox.sh | bash
 
 # With custom hostname:
-curl -fsSL https://raw.githubusercontent.com/matspi/yealink_phonebook/main/deploy-proxmox.sh | bash -s -- myphonebook
+curl -fsSL https://raw.githubusercontent.com/Snak3l3tt3tr/yealink_phonebook/main/deploy-proxmox.sh | bash -s -- myphonebook
 ```
 
 The script automatically finds the next available container ID (starting from 100).
@@ -243,7 +330,7 @@ sh get-docker.sh
 
 4. Clone and run the application:
 ```bash
-git clone https://github.com/matspi/yealink_phonebook.git
+git clone https://github.com/Snak3l3tt3tr/yealink_phonebook.git
 cd yealink_phonebook
 docker-compose up -d
 ```
@@ -259,7 +346,7 @@ apt install python3.11 python3-pip -y
 
 3. Clone and setup:
 ```bash
-git clone https://github.com/matspi/yealink_phonebook.git
+git clone https://github.com/Snak3l3tt3tr/yealink_phonebook.git
 cd yealink_phonebook/backend
 pip install -r requirements.txt
 ```

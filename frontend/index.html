@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telefonbuch</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14'%3E☎%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,22 +22,22 @@
 
                     <div class="form-group">
                         <label for="name">Name *</label>
-                        <input type="text" id="name" name="name" required>
+                        <input type="text" id="name" name="name" autocomplete="name" required>
                     </div>
 
                     <div class="form-group">
                         <label for="phone1">Telefonnummer 1</label>
-                        <input type="tel" id="phone1" name="phone1">
+                        <input type="tel" id="phone1" name="phone1" autocomplete="tel">
                     </div>
 
                     <div class="form-group">
                         <label for="phone2">Telefonnummer 2</label>
-                        <input type="tel" id="phone2" name="phone2">
+                        <input type="tel" id="phone2" name="phone2" autocomplete="tel">
                     </div>
 
                     <div class="form-group">
                         <label for="phone3">Telefonnummer 3</label>
-                        <input type="tel" id="phone3" name="phone3">
+                        <input type="tel" id="phone3" name="phone3" autocomplete="tel">
                     </div>
 
                     <div class="form-actions">
@@ -44,6 +45,55 @@
                         <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Abbrechen</button>
                     </div>
                 </form>
+            </section>
+
+            <!-- CSV Import and Export -->
+            <section class="bulk-tools" aria-labelledby="bulk-tools-title">
+                <div class="bulk-tools-header">
+                    <div>
+                        <h2 id="bulk-tools-title">CSV-Import und -Export</h2>
+                        <p>Spalten: <code>name</code>, <code>phone1</code>, <code>phone2</code>, <code>phone3</code>. Der Name ist erforderlich.</p>
+                    </div>
+                    <a class="btn btn-secondary" href="/api/contacts/export.csv" download>
+                        Alle Kontakte exportieren
+                    </a>
+                </div>
+
+                <form id="importForm" class="import-form">
+                    <div class="form-group">
+                        <label for="csvFile">CSV-Datei auswählen</label>
+                        <input type="file" id="csvFile" name="file" accept=".csv,text/csv" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duplicateStrategy">Bei gleichem Namen</label>
+                        <select id="duplicateStrategy" name="duplicateStrategy">
+                            <option value="skip">Vorhandenen Kontakt überspringen</option>
+                            <option value="update">Vorhandenen Kontakt aktualisieren</option>
+                            <option value="error">Als Fehler melden</option>
+                        </select>
+                        <small>Der Vergleich ignoriert Groß-/Kleinschreibung und Leerzeichen am Rand.</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="importBtn">Kontakte importieren</button>
+                </form>
+
+                <div id="importResult" class="import-result" role="status" aria-live="polite" hidden>
+                    <h3>Importergebnis</h3>
+                    <p id="importSummary"></p>
+                    <div class="table-scroll" id="importErrorsContainer" hidden>
+                        <table class="import-errors">
+                            <thead>
+                                <tr>
+                                    <th>Zeile</th>
+                                    <th>Name</th>
+                                    <th>Fehler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="importErrorsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- Contacts List -->

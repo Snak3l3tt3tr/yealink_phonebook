@@ -20,18 +20,15 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd backend
-        pip install -r requirements.txt
-        pip install pytest pytest-cov httpx
+        pip install -r backend/requirements-dev.txt
 
     - name: Run tests
       run: |
-        cd backend
-        pytest --cov=. --cov-report=xml || echo "No tests found yet"
+        pytest backend/tests --cov=backend --cov-report=xml --cov-report=term-missing
 
     - name: Upload coverage
       uses: codecov/codecov-action@v3
       if: always()
       with:
-        file: ./backend/coverage.xml
+        file: ./coverage.xml
         fail_ci_if_error: false

@@ -96,7 +96,8 @@ h2 {
     font-weight: 500;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
@@ -105,9 +106,16 @@ h2 {
     transition: border-color 0.3s;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
     outline: none;
     border-color: #3498db;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 6px;
+    color: #7f8c8d;
 }
 
 .form-actions {
@@ -140,6 +148,89 @@ h2 {
 
 .btn-secondary:hover {
     background: #7f8c8d;
+}
+
+.btn:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+/* CSV import and export */
+.bulk-tools-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.bulk-tools-header h2 {
+    margin-bottom: 6px;
+}
+
+.bulk-tools-header p {
+    color: #5f6b76;
+}
+
+.bulk-tools-header .btn {
+    flex: 0 0 auto;
+    text-decoration: none;
+}
+
+.import-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 16px;
+}
+
+.import-form .form-group {
+    margin-bottom: 0;
+}
+
+.import-result {
+    margin-top: 22px;
+    padding: 16px;
+    border: 1px solid #b9e2c5;
+    border-left: 4px solid #27ae60;
+    border-radius: 4px;
+    background: #f1fbf4;
+}
+
+.import-result.has-errors {
+    border-color: #f1d08a;
+    border-left-color: #f39c12;
+    background: #fffaf0;
+}
+
+.import-result h3 {
+    margin-bottom: 4px;
+    color: #2c3e50;
+}
+
+.table-scroll {
+    max-width: 100%;
+    margin-top: 14px;
+    overflow-x: auto;
+}
+
+.import-errors {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.import-errors th,
+.import-errors td {
+    padding: 9px 10px;
+    border: 1px solid #e0e0e0;
+    text-align: left;
+    vertical-align: top;
+}
+
+.import-errors th:first-child,
+.import-errors td:first-child {
+    width: 70px;
 }
 
 .btn-edit {
@@ -329,6 +420,13 @@ h2 {
 
     .form-actions {
         flex-direction: column;
+    }
+
+    .bulk-tools-header,
+    .import-form {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .btn {

@@ -18,6 +18,14 @@ const contactIdInput = document.getElementById('contactId');
 const searchBox = document.getElementById('searchBox');
 const searchInput = document.getElementById('searchInput');
 const searchCount = document.getElementById('searchCount');
+const importForm = document.getElementById('importForm');
+const csvFile = document.getElementById('csvFile');
+const duplicateStrategy = document.getElementById('duplicateStrategy');
+const importBtn = document.getElementById('importBtn');
+const importResult = document.getElementById('importResult');
+const importSummary = document.getElementById('importSummary');
+const importErrorsContainer = document.getElementById('importErrorsContainer');
+const importErrorsBody = document.getElementById('importErrorsBody');
 
 // State
 let editingContactId = null;
@@ -29,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     contactForm.addEventListener('submit', handleSubmit);
     cancelBtn.addEventListener('click', resetForm);
     searchInput.addEventListener('input', handleSearch);
+    importForm.addEventListener('submit', handleImport);
 });
 
 // Load all contacts
@@ -56,6 +65,74 @@ async function loadContacts() {
         showError('Fehler beim Laden der Kontakte: ' + err.message);
         hideLoading();
     }
+}
+
+// Import contacts from a CSV file
+async function handleImport(e) {
+    e.preventDefault();
+
+    if (!csvFile.files.length) {
+        showError('Bitte wählen Sie eine CSV-Datei aus.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', csvFile.files[0]);
+    importBtn.disabled = true;
+    importBtn.textContent = 'Wird importiert...';
+    importResult.hidden = true;
+
+    try {
+        const strategy = encodeURIComponent(duplicateStrategy.value);
+        const response = await fetch(`${API_BASE_URL}/contacts/import?duplicate_strategy=${strategy}`, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || 'CSV-Datei konnte nicht importiert werden');
+        }
+
+        displayImportResult(result);
+        importForm.reset();
+        await loadContacts();
+    } catch (err) {
+        showError('Fehler beim CSV-Import: ' + err.message);
+    } finally {
+        importBtn.disabled = false;
+        importBtn.textContent = 'Kontakte importieren';
+    }
+}
+
+function displayImportResult(result) {
+    importResult.hidden = false;
+    importSummary.textContent = [
+        `${result.total_rows} Zeilen verarbeitet`,
+        `${result.created} neu`,
+        `${result.updated} aktualisiert`,
+        `${result.skipped} übersprungen`,
+        `${result.error_count} fehlerhaft`
+    ].join(' · ');
+
+    importErrorsBody.innerHTML = '';
+    if (!result.errors.length) {
+        importErrorsContainer.hidden = true;
+        importResult.classList.remove('has-errors');
+        return;
+    }
+
+    result.errors.forEach(rowError => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(String(rowError.row))}</td>
+            <td>${escapeHtml(rowError.name || '–')}</td>
+            <td>${escapeHtml(rowError.message)}</td>
+        `;
+        importErrorsBody.appendChild(row);
+    });
+    importErrorsContainer.hidden = false;
+    importResult.classList.add('has-errors');
 }
 
 // Display contacts in table and cards
