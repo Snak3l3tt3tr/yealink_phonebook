@@ -163,6 +163,19 @@ python -m pytest backend/tests
 
 ## Windows Docker Deployment and Update
 
+To deploy and open TCP port `8681` on every Windows Firewall profile, start
+PowerShell as Administrator and run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\Deploy-Public.ps1
+```
+
+The script starts the Docker Compose service, creates an inbound firewall rule
+for any remote address, and verifies `http://127.0.0.1:8681/api`. If the PC is
+behind a router, also forward public TCP port `8681` to the PC's LAN address on
+port `8681`. An ISP CGNAT connection requires a tunnel or a public server.
+
 Run these commands in PowerShell from the folder where you want the project:
 
 ```powershell
