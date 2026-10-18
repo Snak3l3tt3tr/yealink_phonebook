@@ -43,9 +43,9 @@ docker-compose up -d
 ```
 
 3. Access the application:
-- Web Interface: http://localhost:8000/frontend/
-- API Documentation: http://localhost:8000/docs
-- Yealink XML: http://localhost:8000/yealink/phonebook.xml
+- Web Interface: http://localhost:8681/
+- API Documentation: http://localhost:8681/docs
+- Yealink XML: http://localhost:8681/yealink/phonebook.xml
 
 ### Manual Setup
 
@@ -128,7 +128,7 @@ Database IDs are intentionally excluded.
 
 1. Access your Yealink phone's web interface
 2. Navigate to Directory → Remote Phone Book
-3. Set the Remote URL to: `http://your-server:8000/yealink/phonebook.xml`
+3. For Docker, set the Remote URL to: `http://your-server:8681/yealink/phonebook.xml`
 4. Save and the phonebook will sync automatically
 
 ## Development
@@ -172,7 +172,18 @@ docker compose up -d --build
 docker compose ps
 ```
 
-Open `http://localhost:8000/`. The named Docker volume `phonebook-data` stores
+Open `http://localhost:8681/`. The Compose configuration deliberately uses the
+same deployment identity as the existing Windows installation:
+
+| Setting | Value |
+|---|---|
+| Compose project | `yealinkphonebook` |
+| Service | `phonebook` |
+| Image | `yealinkphonebook-phonebook` |
+| Generated container | `yealinkphonebook-phonebook-1` |
+| Port mapping | `8681:8000` |
+
+The named Docker volume `phonebook-data` stores
 the SQLite database independently of the container, so rebuilding the image
 does not delete contacts.
 
@@ -193,7 +204,7 @@ Then pull and rebuild:
 git pull
 docker compose up -d --build
 docker compose ps
-Invoke-RestMethod http://localhost:8000/api
+Invoke-RestMethod http://localhost:8681/api
 ```
 
 If the health request returns `status: ok`, open the web interface and import a

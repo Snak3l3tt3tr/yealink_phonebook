@@ -1,10 +1,11 @@
-version: '3.8'
+name: yealinkphonebook
 
 services:
   phonebook:
     build: .
+    image: yealinkphonebook-phonebook
     ports:
-      - "8000:8000"
+      - "8681:8000"
     volumes:
       - phonebook-data:/data
       - ./frontend:/app/frontend
