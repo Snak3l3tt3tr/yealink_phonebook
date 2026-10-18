@@ -275,7 +275,11 @@ async def get_yealink_phonebook(db: Session = Depends(get_db)):
     xml_lines.append('</root_contact>')
 
     xml_content = '\n'.join(xml_lines)
-    return Response(content=xml_content, media_type="application/xml")
+    return Response(
+        content=xml_content,
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": 'attachment; filename="contact.xml"'},
+    )
 
 
 def _escape_xml(text: str) -> str:

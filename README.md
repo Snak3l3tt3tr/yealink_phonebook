@@ -122,12 +122,16 @@ Database IDs are intentionally excluded.
 
 ### Yealink Integration
 
-- `GET /yealink/phonebook.xml` - XML phonebook for Yealink IP phones
+- `GET /yealink/phonebook.xml` - Download the XML phonebook for Yealink IP phones
 
 The XML matches the Yealink local-contact export structure. The existing
 database fields map as follows: `phone1` is the office number, `phone2` is the
 mobile number, and `phone3` is the other number. No database migration is
 required.
+
+Browsers download this endpoint as `contact.xml` because Yealink's local-contact
+format has two top-level sections and cannot be rendered as strict XML. The file
+body remains in the phone-compatible format.
 
 ## Yealink IP Phone Setup
 

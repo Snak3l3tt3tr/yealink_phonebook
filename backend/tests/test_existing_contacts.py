@@ -33,7 +33,8 @@ def test_yealink_xml_matches_phone_contact_export_and_escapes_attributes(client)
     response = client.get("/yealink/phonebook.xml")
 
     assert response.status_code == 200
-    assert response.headers["content-type"].startswith("application/xml")
+    assert response.headers["content-type"].startswith("application/octet-stream")
+    assert response.headers["content-disposition"] == 'attachment; filename="contact.xml"'
     assert '<group display_name="All Contacts" />' in response.text
     assert '<group display_name="Blacklist" />' in response.text
     assert '<group display_name="Blocklist" ring="" />' in response.text
