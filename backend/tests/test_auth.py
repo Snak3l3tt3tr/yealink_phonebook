@@ -10,6 +10,11 @@ def test_login_protects_pages_and_contact_api(anonymous_client):
     )
     assert local_export.status_code == 307
     assert local_export.headers["location"] == "/login.html"
+    setup_file = anonymous_client.get(
+        "/yealink/remote-phonebook.cfg", follow_redirects=False
+    )
+    assert setup_file.status_code == 307
+    assert setup_file.headers["location"] == "/login.html"
 
     rejected = anonymous_client.post(
         "/api/auth/login", json={"username": "admin", "password": "wrong"}

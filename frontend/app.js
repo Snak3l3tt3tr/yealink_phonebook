@@ -33,6 +33,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 const changePasswordForm = document.getElementById('changePasswordForm');
 const changePasswordBtn = document.getElementById('changePasswordBtn');
 const passwordStatus = document.getElementById('passwordStatus');
+const remotePhonebookUrl = document.getElementById('remotePhonebookUrl');
 
 // State
 let editingContactId = null;
@@ -40,6 +41,7 @@ let allContacts = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    remotePhonebookUrl.value = `${window.location.origin}/yealink/phonebook.xml`;
     loadContacts();
     contactForm.addEventListener('submit', handleSubmit);
     cancelBtn.addEventListener('click', resetForm);

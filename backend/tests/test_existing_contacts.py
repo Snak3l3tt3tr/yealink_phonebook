@@ -70,6 +70,23 @@ def test_t33_remote_phonebook_matches_yealink_directory_structure(client):
     assert "<Telephone>1003</Telephone>" in response.text
 
 
+def test_remote_phonebook_setup_file_uses_the_app_network_address(client):
+    response = client.get(
+        "/yealink/remote-phonebook.cfg",
+        headers={"host": "192.168.128.10:8681"},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/plain")
+    assert (
+        "remote_phonebook.data.1.url = "
+        "http://192.168.128.10:8681/yealink/phonebook.xml"
+    ) in response.text
+    assert "remote_phonebook.data.1.name = Company Phonebook" in response.text
+    assert "features.remote_phonebook.enable = 1" in response.text
+    assert "features.remote_phonebook.flash_time = 3600" in response.text
+
+
 def test_yealink_local_contact_export_remains_available(client):
     client.post("/api/contacts", json={"name": "Alice", "phone1": "100"})
 
@@ -91,6 +108,9 @@ def test_web_ui_is_english_and_exposes_csv_import_and_export_controls(client):
     assert "Office Number" in response.text
     assert "Mobile Number" in response.text
     assert "Other Number" in response.text
+    assert "Phone Connection" in response.text
+    assert "192.168.131.165" in response.text
+    assert 'href="/yealink/remote-phonebook.cfg"' in response.text
     assert "Import Contacts" in response.text
     assert "Export All Contacts" in response.text
     assert 'id="importForm"' in response.text

@@ -107,6 +107,20 @@
 
                 <div class="maintenance-grid">
                     <article class="maintenance-card">
+                        <h3>Phone Connection</h3>
+                        <p>The phone pulls contacts from this address. Open this app using the server's LAN address before downloading the setup file.</p>
+                        <div class="form-group">
+                            <label for="remotePhonebookUrl">Remote Phone Book URL</label>
+                            <input type="text" id="remotePhonebookUrl" readonly>
+                        </div>
+                        <p>Yealink T40G address: <code>192.168.131.165</code></p>
+                        <div class="maintenance-actions">
+                            <a class="btn btn-primary" href="http://192.168.131.165" target="_blank" rel="noopener">Open Phone Admin</a>
+                            <a class="btn btn-secondary" href="/yealink/remote-phonebook.cfg" download>Download Phone Setup</a>
+                        </div>
+                    </article>
+
+                    <article class="maintenance-card">
                         <h3>Backup and Restore</h3>
                         <p>Back up before updates and before clearing contacts. Restore a CSV backup using the import form above.</p>
                         <div class="maintenance-actions">

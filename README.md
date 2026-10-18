@@ -163,6 +163,7 @@ password from **Maintenance**.
 ### Yealink Integration
 
 - `GET /yealink/phonebook.xml` - Public Remote Phone Book URL used by phones
+- `GET /yealink/remote-phonebook.cfg` - Authenticated Yealink setup-file download
 - `GET /yealink/local-contacts.xml` - Authenticated local-contact XML download
 
 The remote URL returns valid XML rooted at `YealinkIPPhoneDirectory`, with one
@@ -184,10 +185,17 @@ migration is required.
 
 ## Yealink IP Phone Setup
 
-1. Access your Yealink phone's web interface
-2. Navigate to Directory → Remote Phone Book
-3. For Docker, set the Remote URL to: `http://your-server:8681/yealink/phonebook.xml`
-4. Save and the phonebook will sync automatically
+The supplied phone is a Yealink T40G at `http://192.168.131.165`. Its older
+export already enables the remote phone book and sets a one-hour refresh, but
+does not contain `remote_phonebook.data.1.url`.
+
+1. Open the app using the Docker server's LAN address, not `localhost`.
+2. Under **Maintenance → Phone Connection**, download **Phone Setup**.
+3. Open **Phone Admin**, sign in, and import `remote-phonebook.cfg` from
+   **Settings → Configuration**. The app does not store the phone password.
+4. Alternatively, navigate to **Directory → Remote Phone Book** and enter the
+   URL shown in the app.
+5. Save, then refresh the remote directory on the phone.
 
 ### SIP-T33P/T33G Settings
 

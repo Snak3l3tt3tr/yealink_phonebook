@@ -398,6 +398,30 @@ async def get_yealink_phonebook(db: Session = Depends(get_db)):
     return Response(content='\n'.join(xml_lines), media_type="application/xml")
 
 
+@app.get("/yealink/remote-phonebook.cfg")
+async def get_remote_phonebook_config(request: Request):
+    """Download the minimal Yealink configuration for this app address."""
+    phonebook_url = request.url_for("get_yealink_phonebook")
+    content = "\n".join(
+        [
+            "#!version:1.0.0.1",
+            "",
+            "features.remote_phonebook.enable = 1",
+            "features.remote_phonebook.flash_time = 3600",
+            f"remote_phonebook.data.1.url = {phonebook_url}",
+            "remote_phonebook.data.1.name = Company Phonebook",
+            "",
+        ]
+    )
+    return Response(
+        content=content,
+        media_type="text/plain",
+        headers={
+            "Content-Disposition": 'attachment; filename="remote-phonebook.cfg"'
+        },
+    )
+
+
 @app.get("/yealink/local-contacts.xml")
 async def get_yealink_local_contacts(db: Session = Depends(get_db)):
     """Download the local-contact import/export format used by Yealink phones."""
