@@ -1,3 +1,6 @@
+from xml.etree import ElementTree
+
+
 def test_existing_contact_crud_still_works(client):
     created = client.post(
         "/api/contacts",
@@ -33,7 +36,7 @@ def test_clear_all_contacts_requires_confirmation(client):
     assert client.get("/api/contacts").json() == []
 
 
-def test_yealink_xml_matches_phone_contact_export_and_escapes_attributes(client):
+def test_yealink_remote_phonebook_is_valid_xml_and_escapes_values(client):
     client.post(
         "/api/contacts",
         json={
@@ -47,17 +50,27 @@ def test_yealink_xml_matches_phone_contact_export_and_escapes_attributes(client)
     response = client.get("/yealink/phonebook.xml")
 
     assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/xml")
+    assert "content-disposition" not in response.headers
+    assert ElementTree.fromstring(response.content).tag == "YealinkIPPhoneDirectory"
+    assert "<YealinkIPPhoneDirectory>" in response.text
+    assert response.text.count("<DirectoryEntry>") == 1
+    assert "<Name>R&amp;D &lt;Desk&gt;</Name>" in response.text
+    assert "<Telephone>100&amp;1&quot;</Telephone>" in response.text
+    assert "<Telephone>1002</Telephone>" in response.text
+    assert "<Telephone>1003</Telephone>" in response.text
+
+
+def test_yealink_local_contact_export_remains_available(client):
+    client.post("/api/contacts", json={"name": "Alice", "phone1": "100"})
+
+    response = client.get("/yealink/local-contacts.xml")
+
+    assert response.status_code == 200
     assert response.headers["content-type"].startswith("application/octet-stream")
     assert response.headers["content-disposition"] == 'attachment; filename="contact.xml"'
     assert '<group display_name="All Contacts" />' in response.text
-    assert '<group display_name="Blacklist" />' in response.text
-    assert '<group display_name="Blocklist" ring="" />' in response.text
-    assert response.text.count("<contact ") == 1
-    assert 'display_name="R&amp;D &lt;Desk&gt;"' in response.text
-    assert 'office_number="100&amp;1&quot;"' in response.text
-    assert 'mobile_number="1002"' in response.text
-    assert 'other_number="1003"' in response.text
-    assert 'line="-1" ring="Auto" group_id_name="All Contacts"' in response.text
+    assert '<contact display_name="Alice" office_number="100"' in response.text
 
 
 def test_web_ui_is_english_and_exposes_csv_import_and_export_controls(client):
@@ -77,7 +90,7 @@ def test_web_ui_is_english_and_exposes_csv_import_and_export_controls(client):
     assert 'id="maintenance-title"' in response.text
     assert 'id="maintenanceContactCount"' in response.text
     assert 'id="clearAllBtn"' in response.text
-    assert 'href="/yealink/phonebook.xml"' in response.text
+    assert 'href="/yealink/local-contacts.xml"' in response.text
     assert "Back up before updates" in response.text
     assert "requires an administrator login" in response.text
     assert "Telefonbuch" not in response.text

@@ -378,8 +378,30 @@ async def delete_contact(contact_id: int, db: Session = Depends(get_db)):
 
 @app.get("/yealink/phonebook.xml")
 async def get_yealink_phonebook(db: Session = Depends(get_db)):
-    """Generate the local-contact XML format exported by Yealink phones."""
-    contacts = db.query(Contact).all()
+    """Generate the valid XML format required by Yealink Remote Phone Book."""
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<YealinkIPPhoneDirectory>',
+    ]
+
+    for contact in db.query(Contact).order_by(Contact.id).all():
+        xml_lines.append('  <DirectoryEntry>')
+        xml_lines.append(f'    <Name>{_escape_xml(contact.name)}</Name>')
+        for phone_number in (contact.phone1, contact.phone2, contact.phone3):
+            if phone_number:
+                xml_lines.append(
+                    f'    <Telephone>{_escape_xml(phone_number)}</Telephone>'
+                )
+        xml_lines.append('  </DirectoryEntry>')
+
+    xml_lines.append('</YealinkIPPhoneDirectory>')
+    return Response(content='\n'.join(xml_lines), media_type="application/xml")
+
+
+@app.get("/yealink/local-contacts.xml")
+async def get_yealink_local_contacts(db: Session = Depends(get_db)):
+    """Download the local-contact import/export format used by Yealink phones."""
+    contacts = db.query(Contact).order_by(Contact.id).all()
 
     xml_lines = [
         '<?xml version="1.0" encoding="utf-8"?>',

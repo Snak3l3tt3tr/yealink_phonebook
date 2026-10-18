@@ -162,16 +162,25 @@ password from **Maintenance**.
 
 ### Yealink Integration
 
-- `GET /yealink/phonebook.xml` - Download the XML phonebook for Yealink IP phones
+- `GET /yealink/phonebook.xml` - Public Remote Phone Book URL used by phones
+- `GET /yealink/local-contacts.xml` - Authenticated local-contact XML download
 
-The XML matches the Yealink local-contact export structure. The existing
-database fields map as follows: `phone1` is the office number, `phone2` is the
-mobile number, and `phone3` is the other number. No database migration is
-required.
+The remote URL returns valid XML rooted at `YealinkIPPhoneDirectory`, with one
+`DirectoryEntry` per contact and up to three `Telephone` elements. Configure
+this URL under **Directory → Remote Phone Book**:
 
-Browsers download this endpoint as `contact.xml` because Yealink's local-contact
-format has two top-level sections and cannot be rendered as strict XML. The file
-body remains in the phone-compatible format.
+```text
+http://your-server:8681/yealink/phonebook.xml
+```
+
+The **Download Yealink Local XML** button produces `contact.xml` in the
+`root_group` plus `root_contact` format used by the phone's manual local-contact
+import/export screen. That file is intentionally separate because it is not the
+format accepted by the Remote Phone Book URL.
+
+The existing database fields map as follows: `phone1` is the office number,
+`phone2` is the mobile number, and `phone3` is the other number. No database
+migration is required.
 
 ## Yealink IP Phone Setup
 
